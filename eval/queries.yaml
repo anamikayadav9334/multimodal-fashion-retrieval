@@ -1,0 +1,33 @@
+# Evaluation protocol
+#   test: the 5 assignment queries - reported, NEVER used for tuning
+#   dev:  our own queries covering the same capabilities - used for weight tuning
+# Relevance is judged on the IMAGES (contact sheets), 0 = no, 1 = partial, 2 = full match.
+
+test:
+  - id: T1
+    type: attribute
+    text: "A person in a bright yellow raincoat."
+  - id: T2
+    type: contextual
+    text: "Professional business attire inside a modern office."
+  - id: T3
+    type: complex_semantic
+    text: "Someone wearing a blue shirt sitting on a park bench."
+  - id: T4
+    type: style_inference
+    text: "Casual weekend outfit for a city walk."
+  - id: T5
+    type: compositional
+    text: "A red tie and a white shirt in a formal setting."
+
+dev:
+  - {id: D1, type: attribute, text: "A woman in a red dress."}
+  - {id: D2, type: attribute, text: "Someone wearing a green jacket."}
+  - {id: D3, type: compositional, text: "A white t-shirt with blue jeans."}
+  - {id: D4, type: compositional, text: "A white tie and a red shirt."}         # swapped colors of T5
+  - {id: D5, type: compositional, text: "A man in a navy blazer and a white shirt."}
+  - {id: D6, type: contextual, text: "A person wearing a black coat on a city street."}
+  - {id: D7, type: contextual, text: "Someone relaxing at home in casual clothes."}
+  - {id: D8, type: complex_semantic, text: "A person with a hat and sunglasses walking outdoors."}
+  - {id: D9, type: style_inference, text: "An elegant outfit for an evening event."}
+  - {id: D10, type: style_inference, text: "What to wear on a rainy day in the city."}
