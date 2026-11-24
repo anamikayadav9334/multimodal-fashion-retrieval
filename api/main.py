@@ -51,7 +51,8 @@ app.add_middleware(
     allow_methods=["GET", "POST"],
     allow_headers=["*"],
 )
-app.mount("/images", StaticFiles(directory=ROOT / "data" / "images"), name="images")
+if (ROOT / "data" / "images").is_dir():  # hosted API: images are served by GitHub Pages instead
+    app.mount("/images", StaticFiles(directory=ROOT / "data" / "images"), name="images")
 
 
 class SearchRequest(BaseModel):
@@ -88,8 +89,16 @@ def search(req: SearchRequest):
         raise HTTPException(400, f"mode must be one of {MODES}")
     R: Retriever = STATE["retriever"]
     with LOCK:
-        out = R.search(req.query, k=req.k, mode=req.mode, use_llm=req.use_llm)
+        try:
+            out = R.search(req.query, k=req.k, mode=req.mode, use_llm=req.use_llm)
+        except KeyError:
+            raise HTTPException(422, "Vanilla-CLIP baseline is only precomputed for the example queries on this host.")
         if req.compare:
             other = "baseline" if req.mode != "baseline" else "hybrid"
-            out = {"primary": out, "compare": R.search(req.query, k=req.k, mode=other)}
+            try:
+                cmp = R.search(req.query, k=req.k, mode=other)
+                note = None
+            except KeyError:  # hosted demo: CLIP baseline precomputed for example queries only
+                cmp, note = None, "CLIP comparison is precomputed for the example queries on the hosted demo; run locally for any query."
+            out = {"primary": out, "compare": cmp, "compare_note": note}
     return out

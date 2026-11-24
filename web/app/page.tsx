@@ -18,7 +18,7 @@ export default function Home() {
   const [compare, setCompare] = useState(false);
   const [loading, setLoading] = useState(false);
   const [err, setErr] = useState("");
-  const [data, setData] = useState<{ primary: SearchOut; compare: SearchOut | null } | null>(null);
+  const [data, setData] = useState<{ primary: SearchOut; compare: SearchOut | null; compare_note?: string | null } | null>(null);
 
   async function run(text: string) {
     if (text.trim().length < 2) return;
@@ -80,7 +80,13 @@ export default function Home() {
         </div>
       </section>
 
-      {err && <p className="mb-6 rounded-xl border border-accent/40 bg-accent-soft p-4 text-sm">{err} — is the API running?</p>}
+      {err && (
+        <p className="mb-6 rounded-xl border border-accent/40 bg-accent-soft p-4 text-sm">
+          {err}. The free server sleeps when idle — the first search can take ~1 minute to wake it. Please retry.
+        </p>
+      )}
+      {loading && <p className="mb-6 text-center text-sm text-muted">Searching… (first search after idle may take up to a minute)</p>}
+      {data?.compare_note && <p className="mb-6 rounded-xl border border-line bg-card p-3 text-xs text-muted">{data.compare_note}</p>}
 
       {spec && (
         <section className="mb-8 rounded-2xl border border-line bg-card p-4 text-sm">

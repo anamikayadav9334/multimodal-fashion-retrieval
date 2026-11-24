@@ -38,7 +38,9 @@ export type SearchOut = {
   timing: { total_s: number; parse_s?: number };
 };
 
-export const imageUrl = (path: string) => `${API}/images/${path}`;
+// Images come from GitHub Pages when NEXT_PUBLIC_IMAGE_BASE is set (hosted), else from the API (local dev).
+const IMAGE_BASE = (process.env.NEXT_PUBLIC_IMAGE_BASE || `${API}/images`).replace(/\/$/, "");
+export const imageUrl = (path: string) => `${IMAGE_BASE}/${path}`;
 
 export async function search(query: string, compare: boolean, k = 12) {
   const r = await fetch(`${API}/api/search`, {
@@ -48,7 +50,9 @@ export async function search(query: string, compare: boolean, k = 12) {
   });
   if (!r.ok) throw new Error(`Search failed (${r.status})`);
   const d = await r.json();
-  return compare ? (d as { primary: SearchOut; compare: SearchOut }) : { primary: d as SearchOut, compare: null };
+  return compare
+    ? (d as { primary: SearchOut; compare: SearchOut | null; compare_note?: string | null })
+    : { primary: d as SearchOut, compare: null, compare_note: null };
 }
 
 export async function getJSON<T>(path: string): Promise<T> {

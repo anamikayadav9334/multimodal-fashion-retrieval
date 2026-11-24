@@ -25,7 +25,14 @@ function Bar({ v, strong }: { v: number; strong?: boolean }) {
 export default function EvalPage() {
   const [d, setD] = useState<EvalOut | null>(null);
   const [err, setErr] = useState("");
-  useEffect(() => { getJSON<EvalOut>("/api/eval").then(setD).catch((e) => setErr(String(e))); }, []);
+  useEffect(() => {
+    // bundled static copy first (instant, works while the free API sleeps); API as fallback
+    fetch(`${process.env.NEXT_PUBLIC_BASE_PATH || ""}/results.json`)
+      .then((r) => (r.ok ? r.json() : Promise.reject(r.status)))
+      .catch(() => getJSON<EvalOut>("/api/eval"))
+      .then(setD)
+      .catch((e) => setErr(String(e)));
+  }, []);
 
   if (err) return <p className="py-10 text-muted">{err}</p>;
   if (!d) return <p className="py-10 text-muted">Loading…</p>;

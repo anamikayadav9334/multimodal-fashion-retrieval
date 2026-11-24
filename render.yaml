@@ -1,0 +1,15 @@
+# Render Blueprint: the retrieval API on the free plan.
+services:
+  - type: web
+    name: fashion-retrieval-api
+    runtime: docker
+    plan: free
+    dockerfilePath: ./deploy/render/Dockerfile
+    dockerContext: .
+    healthCheckPath: /api/health
+    autoDeploy: true
+    envVars:
+      - key: OPENROUTER_API_KEY   # optional: enables the free-LLM query parser
+        sync: false
+      - key: CORS_ORIGINS
+        value: "*"

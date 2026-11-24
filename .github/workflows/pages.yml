@@ -24,8 +24,9 @@ jobs:
       run:
         working-directory: web
     env:
-      NEXT_PUBLIC_API_URL: ${{ vars.API_URL || 'https://REPLACE-ME.hf.space' }}
+      NEXT_PUBLIC_API_URL: ${{ vars.API_URL || 'https://fashion-retrieval-api.onrender.com' }}
       NEXT_PUBLIC_BASE_PATH: /${{ github.event.repository.name }}
+      NEXT_PUBLIC_IMAGE_BASE: /${{ github.event.repository.name }}/images
       NEXT_TELEMETRY_DISABLED: 1
     steps:
       - uses: actions/checkout@v4

@@ -13,10 +13,13 @@ from __future__ import annotations
 import time
 from collections import defaultdict
 
+import os
+
 import numpy as np
 from qdrant_client import models
 
-from ..common import encoders, sparse
+from ..common import sparse
+from ..common.config import resolve
 from ..common.store import get_client
 from .query import QueryParser, QuerySpec
 from .scoring import binding_score, garment_text, minmax
@@ -25,14 +28,23 @@ MODES = ("hybrid", "fashion", "baseline")
 
 
 class Retriever:
-    def __init__(self, cfg: dict, client=None):
+    def __init__(self, cfg: dict, client=None, runtime: str | None = None):
         m = cfg["models"]
-        dev = encoders.pick_device(m["device"])
         self.cfg, self.rc = cfg, cfg["retriever"]
         self.images, self.regions = cfg["qdrant"]["images_collection"], cfg["qdrant"]["regions_collection"]
-        self.fashion = encoders.fashion_encoder(m["fashion"], dev)
-        self.baseline = encoders.baseline_encoder(m["baseline"]["arch"], m["baseline"]["pretrained"], dev)
-        self.text = encoders.text_encoder(m["text"], dev)
+        # "onnx": torch-free int8 query encoders (deployment); "torch": original models (dev/indexing)
+        self.runtime = runtime or os.environ.get("ENCODER_RUNTIME") or m.get("query_runtime", "torch")
+        if self.runtime == "onnx":
+            from ..common import onnx_encoders
+
+            self.fashion, self.baseline, self.text = onnx_encoders.load(str(resolve(m["onnx_dir"])))
+        else:
+            from ..common import encoders
+
+            dev = encoders.pick_device(m["device"])
+            self.fashion = encoders.fashion_encoder(m["fashion"], dev)
+            self.baseline = encoders.baseline_encoder(m["baseline"]["arch"], m["baseline"]["pretrained"], dev)
+            self.text = encoders.text_encoder(m["text"], dev)
         self.client = client or get_client(cfg)
         self.parser = QueryParser(cfg)
 
