@@ -22,3 +22,8 @@ web/.next/
 .DS_Store
 .vscode/
 *.log
+
+# deploy build output
+deploy/build/
+
+# report figures/pdf are generated but kept in git for reviewers
