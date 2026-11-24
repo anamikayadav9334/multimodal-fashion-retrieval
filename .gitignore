@@ -1,0 +1,24 @@
+# secrets
+.env
+
+# python
+__pycache__/
+*.pyc
+.venv/
+*.egg-info/
+
+# data & build artifacts (reproducible via scripts; hosted separately)
+data/raw/
+data/images/
+artifacts/
+!data/.gitkeep
+!artifacts/.gitkeep
+
+# web
+web/node_modules/
+web/.next/
+
+# os / editor
+.DS_Store
+.vscode/
+*.log
