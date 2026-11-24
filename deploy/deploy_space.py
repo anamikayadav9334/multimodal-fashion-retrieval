@@ -12,6 +12,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import re
 import shutil
 import sys
 from pathlib import Path
@@ -46,9 +47,10 @@ def assemble() -> Path:
         if (ROOT / "artifacts" / f).exists():
             shutil.copy(ROOT / "artifacts" / f, art / f)
 
-    # safety: never ship secrets
+    # safety: never ship secrets (.env is never copied; this also scans every text file)
+    secret = re.compile(r"sk-or-v1-[a-f0-9]{20,}|hf_[A-Za-z0-9]{30,}|gh[pousr]_[A-Za-z0-9]{30,}")
     for f in BUILD.rglob("*"):
-        if f.is_file() and f.suffix in {".py", ".yaml", ".json", ".md", ".toml"} and "sk-or-v1" in f.read_text(errors="ignore"):
+        if f.is_file() and f.suffix in {".py", ".yaml", ".json", ".md", ".toml", ""} and secret.search(f.read_text(errors="ignore")):
             sys.exit(f"refusing to upload: secret found in {f}")
     print(f"assembled {sum(1 for _ in BUILD.rglob('*') if _.is_file())} files, {len(ids)} images -> {BUILD}")
     return BUILD
