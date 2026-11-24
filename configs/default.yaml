@@ -61,7 +61,8 @@ retriever:
       - nvidia/nemotron-3.5-super-vl:free    # most reliable JSON in testing (~12s)
       - baidu/ernie-5.5-flash-preview:free
       - google/gemma-4-31b-it:free           # frequently 504s on the free tier
-    timeout: 15            # per model
+    timeout: 8             # per model
+    total_budget: 12       # seconds across all models, then rule-based fallback
     cache: artifacts/query_cache.json
 
 dataset:

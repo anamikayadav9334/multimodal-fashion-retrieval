@@ -116,6 +116,7 @@ class LLMParser:
     def __init__(self, cfg: dict):
         c = cfg["retriever"]["llm"]
         self.base_url, self.models, self.timeout = c["base_url"], c["models"], c["timeout"]
+        self.budget = c.get("total_budget", 12)
         self.key = os.environ.get(c["api_key_env"], "")
         self.system = _SYSTEM % (", ".join(vocab.GARMENTS), ", ".join(vocab.COLORS))
 
@@ -127,8 +128,13 @@ class LLMParser:
         """Try each free model in turn; any failure (504, 429, empty/invalid JSON) -> next model."""
         import requests
 
-        errors = []
+        import time
+
+        errors, t0 = [], time.time()
         for model in self.models:
+            if time.time() - t0 > self.budget:
+                errors.append("time budget exhausted")
+                break
             try:
                 r = requests.post(
                     f"{self.base_url}/chat/completions",

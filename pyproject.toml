@@ -29,6 +29,7 @@ ml = [
     "scikit-image>=0.22",      # LAB conversion + CIEDE2000
     "sentence-transformers>=3.0",  # bge-small caption/query text embeddings
 ]
+api = ["fastapi>=0.110", "uvicorn>=0.29", "requests"]
 
 [build-system]
 requires = ["hatchling"]

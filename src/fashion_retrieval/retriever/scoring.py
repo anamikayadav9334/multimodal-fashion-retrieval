@@ -96,6 +96,8 @@ def binding_score(spec: QuerySpec, payload: dict, regions: list[dict], crop_pcts
         e_r = region_evidence(g, regions, crop_pct)
         e_c = caption_evidence(g, payload.get("caption_mentions", []), related_credit)
         e = e_r if e_r.score >= e_c.score else e_c
+        if e is e_c and e_r.score > 0:  # caption won, but keep the region box for visualization
+            e.detail = {**e.detail, "box": e_r.detail.get("box"), "class": e_r.detail.get("class")}
         w = inferred_w if g.inferred else 1.0
         num, den = num + w * e.score, den + w
         evid.append(e)
