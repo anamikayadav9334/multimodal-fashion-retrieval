@@ -27,3 +27,4 @@ web/.next/
 deploy/build/
 
 # report figures/pdf are generated but kept in git for reviewers
+out/
