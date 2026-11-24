@@ -11,6 +11,9 @@ failure ("a red tie and a white shirt" ≠ "a white tie and a red shirt").
 
 See [eval/results.md](eval/results.md) and [docs/report.pdf](docs/report.pdf).
 
+**Live demo:** https://anamikayadav9334.github.io/multimodal-fashion-retrieval/
+(API: https://fashion-retrieval-api.onrender.com — free tier sleeps when idle; the first search can take ~1 min)
+
 ## Architecture
 
 ```

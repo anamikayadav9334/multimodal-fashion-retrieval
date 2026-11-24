@@ -236,6 +236,12 @@ def build(github: str, demo: str) -> None:
             "inverted index in Qdrant, regions (~3/image) in their own collection. Indexing is embarrassingly parallel and "
             "resumable; on one GPU the extractor runs roughly 10–20 img/s, i.e. a day for 1M images, or hours across workers. "
             "Captioning is the dominant cost and can be restricted to new / popular images.")]
+    s += [P("Deployment", H2),
+          P("The UI is a static Next.js export on GitHub Pages (images and evaluation bundled). The API runs on Render's "
+            "free 512 MB tier: only the query-side text encoders are needed at search time, exported to ONNX — "
+            "FashionSigLIP and bge int8-quantized (top-10 overlap 48/50, nDCG@10 0.802 vs 0.800 with the original "
+            "models), PyTorch removed (peak ~450 MB). CLIP's text tower lost fidelity under int8 (cosine ≈0.85), "
+            "so the baseline uses exact precomputed query vectors for the example queries instead of a degraded model.")]
     s += [P("Zero-shot capability", H2),
           P("Nothing is trained on our labels. Image–text matching uses open-vocabulary encoders, so unseen phrasing still lands "
             "near the right images; the LLM maps long-tail words (e.g. 'slicker', 'poncho') onto the garment taxonomy and the "
