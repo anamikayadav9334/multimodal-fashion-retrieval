@@ -4,6 +4,65 @@ paths:
   images_dir: data/images      # normalized, resized images used by the indexer
   manifest: data/manifest.jsonl
   artifacts_dir: artifacts     # vector DB, BM25 index, eval outputs
+  features_dir: artifacts/features   # extracted features (indexer stage 1 output)
+  qdrant_path: artifacts/qdrant      # embedded Qdrant (swap for qdrant.url at scale)
+
+models:
+  device: auto                                   # auto | mps | cuda | cpu
+  fashion: hf-hub:Marqo/marqo-fashionSigLIP      # image/text + garment-crop encoder
+  baseline: {arch: ViT-B-32, pretrained: openai} # vanilla CLIP: baseline + general scene recognition
+  detector: valentinafeve/yolos-fashionpedia     # garment regions (Fashionpedia 46 classes)
+  captioner: florence-community/Florence-2-base  # dense captions
+  text: BAAI/bge-small-en-v1.5                   # caption <-> query text similarity
+
+qdrant:
+  url: null          # e.g. http://localhost:6333 -> server mode (HNSW) for large corpora
+  images_collection: images
+  regions_collection: regions
+
+indexer:
+  batch_size: 16
+  detector_threshold: 0.35
+  min_region_area: 0.004     # fraction of image area; drops tiny false positives
+  crop_pad: 0.08             # context padding around garment boxes for crop embeddings
+  caption:
+    task: "<MORE_DETAILED_CAPTION>"
+    max_new_tokens: 128
+    num_beams: 1             # greedy: 2.3x faster than 3 beams on M1, same garment/color content
+    batch_size: 4            # small to keep peak memory low on an 8 GB laptop
+  color:
+    kmeans_k: 3
+    shrink: 0.15             # shrink box before pixel sampling (cuts background)
+    temperature: 8.0         # softmax temperature over CIEDE2000 distances
+    pixel_weight: 0.5        # pixel vs. zero-shot (crop embedding) color evidence
+    min_prob: 0.12           # store colors with probability >= this
+  bm25: {k1: 1.2, b: 0.75}
+
+retriever:
+  recall_k: 200            # candidates per recall channel
+  rrf_k: 60                # reciprocal-rank-fusion constant
+  pool_k: 200              # candidates kept after fusion for re-ranking
+  # Re-ranking weights (hand-set; tuned in Phase 4 on DEV queries, never on the eval queries)
+  weights:
+    global: 1.0            # FashionSigLIP text -> image
+    caption: 0.7           # bge query -> caption
+    bm25: 0.3              # exact caption terms
+    scene: 0.7             # P(query scene | image)
+    binding: 1.5           # color<->garment bound evidence (regions + caption pairs)
+  inferred_garment_weight: 0.5   # garments guessed from style ("casual" -> jeans) count less
+  related_garment_credit: 0.6    # caption says "jacket" when query says "raincoat"
+
+  llm:
+    enabled: true
+    base_url: https://openrouter.ai/api/v1
+    api_key_env: OPENROUTER_API_KEY
+    # FREE models only, tried in order (client-side failover). Never add paid models here.
+    models:
+      - nvidia/nemotron-3.5-super-vl:free    # most reliable JSON in testing (~12s)
+      - baidu/ernie-5.5-flash-preview:free
+      - google/gemma-4-31b-it:free           # frequently 504s on the free tier
+    timeout: 15            # per model
+    cache: artifacts/query_cache.json
 
 dataset:
   seed: 42

@@ -15,6 +15,20 @@ dependencies = [
 [project.optional-dependencies]
 # Phase 1: dataset sourcing
 data = ["kaggle>=1.6", "six"]
+# Models + vector store, shared by indexer and retriever
+ml = [
+    "torch>=2.3",
+    "torchvision",
+    "open_clip_torch>=2.26",   # Marqo-FashionSigLIP + baseline CLIP
+    "transformers>=4.56",      # YOLOS-Fashionpedia detector, Florence-2 captioner
+    "timm",
+    "einops",
+    "qdrant-client>=1.12",
+    "rank-bm25>=0.2.2",
+    "scikit-learn>=1.4",       # k-means for garment colors
+    "scikit-image>=0.22",      # LAB conversion + CIEDE2000
+    "sentence-transformers>=3.0",  # bge-small caption/query text embeddings
+]
 
 [build-system]
 requires = ["hatchling"]
